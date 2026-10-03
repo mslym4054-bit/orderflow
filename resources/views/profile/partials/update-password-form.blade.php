@@ -1,0 +1,36 @@
+<section>
+    <header>
+        <h2 class="text-lg font-medium text-ink">تغيير كلمة المرور</h2>
+        <p class="mt-1 text-sm text-muted">استخدم كلمة مرور قوية للحفاظ على أمان حسابك.</p>
+    </header>
+
+    <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-4">
+        @csrf
+        @method('put')
+
+        <div>
+            <x-input-label for="update_password_current_password" value="كلمة المرور الحالية" />
+            <x-text-input id="update_password_current_password" name="current_password" type="password" class="mt-1 block w-full" />
+            <x-input-error :messages="$errors->updatePassword->get('current_password')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="update_password_password" value="كلمة المرور الجديدة" />
+            <x-text-input id="update_password_password" name="password" type="password" class="mt-1 block w-full" />
+            <x-input-error :messages="$errors->updatePassword->get('password')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="update_password_password_confirmation" value="تأكيد كلمة المرور" />
+            <x-text-input id="update_password_password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" />
+            <x-input-error :messages="$errors->updatePassword->get('password_confirmation')" class="mt-2" />
+        </div>
+
+        <div class="flex items-center gap-4">
+            <x-primary-button>حفظ</x-primary-button>
+            @if (session('status') === 'password-updated')
+                <p class="text-sm text-neon">تم الحفظ.</p>
+            @endif
+        </div>
+    </form>
+</section>
