@@ -1,6 +1,4 @@
 <?php
-// ضيف هاي الدوال جوّا كلاس User الموجود بـ app/Models/User.php (اللي بينشئه Breeze)
-// بعد ما تضيفهم، امسح هذا الملف — هو بس للمرجع.
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
 

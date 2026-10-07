@@ -1,4 +1,3 @@
-
 <x-app-layout>
 
     <x-slot name="header">
@@ -320,7 +319,10 @@
                 </div>
 
 
+                {{-- ========================================= --}}
                 {{-- أحدث الطلبات --}}
+                {{-- ========================================= --}}
+
                 <div class="bg-surface border border-line rounded-xl p-5">
 
                     <div class="flex items-center justify-between mb-5">
@@ -349,116 +351,184 @@
 
                     @if($recentOrders->count())
 
-                        <div class="overflow-x-auto">
+                        <div class="space-y-3">
 
-                            <table class="w-full text-sm">
+                            @foreach($recentOrders as $order)
 
-                                <thead>
+                                @php
 
-                                    <tr class="border-b border-line text-muted">
+                                    $items = $order->items;
 
-                                        <th class="text-right py-3 px-3 font-medium">
-                                            الطلب
-                                        </th>
+                                    if ($items->isNotEmpty()) {
 
-                                        <th class="text-right py-3 px-3 font-medium">
-                                            العميل
-                                        </th>
+                                        $total = $items->sum(function ($item) {
+                                            return ($item->price ?? 0) * $item->quantity;
+                                        });
 
-                                        <th class="text-right py-3 px-3 font-medium">
-                                            المنتج
-                                        </th>
+                                        $totalQuantity = $items->sum('quantity');
 
-                                        <th class="text-right py-3 px-3 font-medium">
-                                            الكمية
-                                        </th>
+                                    } else {
 
-                                        <th class="text-right py-3 px-3 font-medium">
-                                            الحالة
-                                        </th>
+                                        $total = ($order->price ?? 0) * ($order->quantity ?? 0);
 
-                                        <th class="text-left py-3 px-3 font-medium">
-                                            الإجمالي
-                                        </th>
+                                        $totalQuantity = $order->quantity ?? 0;
 
-                                    </tr>
+                                    }
 
-                                </thead>
+                                @endphp
 
 
-                                <tbody>
+                                {{-- بطاقة الطلب --}}
+                                <div class="border border-line rounded-lg p-4">
 
-                                    @foreach($recentOrders as $order)
 
-                                        @php
-                                            $total = ($order->price ?? 0) * ($order->quantity ?? 0);
-                                        @endphp
+                                    {{-- معلومات الطلب --}}
+                                    <div class="flex items-center justify-between gap-4 mb-3">
 
-                                        <tr class="border-b border-line last:border-0">
+                                        <div class="flex items-center gap-3">
 
-                                            <td class="py-4 px-3 font-medium text-ink">
-                                                #{{ number_format($order->id, 0, '.', ',') }}
-                                            </td>
+                                            <div class="w-9 h-9 rounded-lg bg-base flex items-center justify-center shrink-0">
+                                                📦
+                                            </div>
 
-                                            <td class="py-4 px-3 text-ink">
-                                                {{ $order->customer?->name ?? '—' }}
-                                            </td>
+                                            <div>
 
-                                            <td class="py-4 px-3 text-muted">
-                                                {{ $order->item }}
-                                            </td>
+                                                <div class="font-semibold text-ink">
+                                                    #{{ number_format($order->id, 0, '.', ',') }}
+                                                </div>
 
-                                            <td class="py-4 px-3 text-ink">
-                                                {{ number_format($order->quantity, 0, '.', ',') }}
-                                            </td>
+                                                <div class="text-xs text-muted mt-1">
+                                                    {{ $order->customer?->name ?? '—' }}
+                                                </div>
 
-                                            <td class="py-4 px-3">
+                                            </div>
 
-                                                @if($order->status === 'جديد')
+                                        </div>
 
-                                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
-                                                        جديد
-                                                    </span>
 
-                                                @elseif($order->status === 'قيد التجهيز')
+                                        {{-- الحالة --}}
+                                        <div>
 
-                                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500">
-                                                        قيد التجهيز
-                                                    </span>
+                                            @if($order->status === 'جديد')
 
-                                                @elseif($order->status === 'تم الشحن')
+                                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
+                                                    جديد
+                                                </span>
 
-                                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-500">
-                                                        تم الشحن
-                                                    </span>
+                                            @elseif($order->status === 'قيد التجهيز')
 
-                                                @elseif($order->status === 'تم التسليم')
+                                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-500">
+                                                    قيد التجهيز
+                                                </span>
 
-                                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
-                                                        تم التسليم
-                                                    </span>
+                                            @elseif($order->status === 'تم الشحن')
 
-                                                @else
+                                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-500">
+                                                    تم الشحن
+                                                </span>
 
-                                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-500">
-                                                        ملغي
-                                                    </span>
+                                            @elseif($order->status === 'تم التسليم')
 
-                                                @endif
+                                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-500">
+                                                    تم التسليم
+                                                </span>
 
-                                            </td>
+                                            @else
 
-                                            <td class="py-4 px-3 text-left font-semibold text-ink">
+                                                <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-500">
+                                                    ملغي
+                                                </span>
+
+                                            @endif
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {{-- المنتجات --}}
+                                    @if($items->isNotEmpty())
+
+                                        <div class="bg-surface2 border border-line rounded-lg p-2">
+
+                                            <div class="space-y-1.5">
+
+                                                @foreach($items as $item)
+
+                                                    <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-md bg-surface border border-line">
+
+                                                        <div class="flex items-center gap-2 min-w-0">
+
+                                                            <div class="w-7 h-7 rounded-md bg-neon/10 text-neon flex items-center justify-center shrink-0">
+                                                                <x-icon name="package" class="w-4 h-4" />
+                                                            </div>
+
+                                                            <span class="text-ink font-medium truncate">
+                                                                {{ $item->item }}
+                                                            </span>
+
+                                                        </div>
+
+
+                                                        <span class="px-2 py-1 rounded bg-white/5 text-muted text-xs shrink-0">
+                                                            × {{ number_format($item->quantity, 0, '.', ',') }}
+                                                        </span>
+
+                                                    </div>
+
+                                                @endforeach
+
+                                            </div>
+
+                                        </div>
+
+                                    @else
+
+                                        {{-- الطلبات القديمة --}}
+                                        <div class="bg-surface2 border border-line rounded-lg px-3 py-2">
+
+                                            <div class="flex items-center justify-between gap-3">
+
+                                                <span class="text-ink font-medium truncate">
+                                                    {{ $order->item }}
+                                                </span>
+
+                                                <span class="px-2 py-1 rounded bg-white/5 text-muted text-xs shrink-0">
+                                                    × {{ number_format($order->quantity, 0, '.', ',') }}
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    @endif
+
+
+                                    {{-- الإجمالي --}}
+                                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-line">
+
+                                        <div class="text-xs text-muted">
+                                            {{ number_format($totalQuantity, 0, '.', ',') }} قطعة
+                                        </div>
+
+                                        <div class="text-left">
+
+                                            <span class="text-xs text-muted">
+                                                الإجمالي
+                                            </span>
+
+                                            <span class="font-bold text-ink mr-2">
                                                 {{ number_format($total, 2, '.', ',') }}
-                                            </td>
+                                            </span>
 
-                                        </tr>
+                                        </div>
 
-                                    @endforeach
+                                    </div>
 
-                                </tbody>
 
-                            </table>
+                                </div>
+
+                            @endforeach
 
                         </div>
 
@@ -483,6 +553,7 @@
                     @endif
 
                 </div>
+
 
             </div>
 

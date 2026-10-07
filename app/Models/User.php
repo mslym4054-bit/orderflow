@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'trial_ends_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -26,20 +26,32 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
-        public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+
+    /**
+     * User orders.
+     */
+    public function orders(): HasMany
     {
-        return $this->hasMany(\App\Models\Order::class);
+        return $this->hasMany(Order::class);
     }
 
-    public function customers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    /**
+     * User customers.
+     */
+    public function customers(): HasMany
     {
-        return $this->hasMany(\App\Models\Customer::class);
+        return $this->hasMany(Customer::class);
     }
-    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
-{
-    return $this->hasMany(\App\Models\Product::class);
-}
+
+    /**
+     * User products.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
 }

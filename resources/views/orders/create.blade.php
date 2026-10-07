@@ -1,12 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-ink leading-tight flex items-center gap-2">
-            <x-icon name="plus" class="w-5 h-5 text-neon" /> طلب جديد
+            <x-icon name="plus" class="w-5 h-5 text-neon" />
+            طلب جديد
         </h2>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 bg-surface border border-line rounded p-6">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 bg-surface border border-line rounded p-6">
 
             @if ($errors->any())
                 <div class="mb-4 p-3 bg-red-400/10 text-red-300 rounded border border-red-400/20">
@@ -18,52 +19,29 @@
                 </div>
             @endif
 
+            @if (session('stock_error'))
+                <div class="mb-4 p-3 bg-red-400/10 text-red-300 rounded border border-red-400/20">
+                    {{ session('stock_error') }}
+                </div>
+            @endif
+
             <form method="POST"
-      action="{{ route('orders.store') }}"
-      class="space-y-4"
-      x-data="{
-                      price: {{ Illuminate\Support\Js::from(old('price')) }},
-                      cost: {{ Illuminate\Support\Js::from(old('cost')) }},
-                      qty: {{ Illuminate\Support\Js::from(old('quantity', 1)) }},
-                      item: {{ Illuminate\Support\Js::from(old('item')) }},
-                      productId: {{ Illuminate\Support\Js::from(old('product_id')) }},
-                      stock: 0,
-                      products: {{ Illuminate\Support\Js::from($products) }},
-                      submitting: false,
-
-                      selectProduct(value) {
-                          const p = this.products.find(p => p.id == value);
-
-                          if (p) {
-                              this.productId = p.id;
-                              this.item = p.name;
-                              this.cost = p.cost ?? '';
-                              this.price = p.price ?? '';
-                              this.stock = Number(p.stock ?? 0);
-
-                              if (this.stock > 0 && Number(this.qty) > this.stock) {
-                                  this.qty = this.stock;
-                              }
-
-                              if (this.stock === 0) {
-                                  this.qty = 1;
-                              }
-                          } else {
-                              this.productId = '';
-                              this.stock = 0;
-                          }
-                      }
-                  }"
-                  x-init="if (productId) selectProduct(productId)"
+                  action="{{ route('orders.store') }}"
+                  class="space-y-5"
+                  x-data="orderForm()"
                   @submit="submitting = true">
 
                 @csrf
 
+                {{-- العميل --}}
                 <div>
-                    <label class="block mb-1 text-sm font-medium text-ink">العميل</label>
+                    <label class="block mb-1 text-sm font-medium text-ink">
+                        العميل
+                    </label>
 
                     <select name="customer_id"
                             class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon">
+
                         <option value="">-- اختر عميل موجود --</option>
 
                         @foreach ($customers as $customer)
@@ -72,6 +50,7 @@
                                 {{ $customer->name }}
                             </option>
                         @endforeach
+
                     </select>
                 </div>
 
@@ -91,6 +70,7 @@
 
                         <select name="new_customer_country"
                                 class="bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon w-20 px-2">
+
                             <option value="970">🇵🇸 970</option>
                             <option value="966">🇸🇦 966</option>
                             <option value="971">🇦🇪 971</option>
@@ -100,6 +80,7 @@
                             <option value="968">🇴🇲 968</option>
                             <option value="962">🇯🇴 962</option>
                             <option value="20">🇪🇬 20</option>
+
                         </select>
 
                         <input type="text"
@@ -110,121 +91,225 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-ink">
-                        اختر من منتجاتك (اختياري)
-                    </label>
+                {{-- المنتجات --}}
+                <div class="pt-2">
 
-                    <select name="product_id"
-                            class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon"
-                            @change="selectProduct($event.target.value)">
+                    <div class="flex items-center justify-between mb-3">
 
-                        <option value="">-- اكتب يدويًا --</option>
+                        <div>
+                            <h3 class="text-lg font-semibold text-ink">
+                                المنتجات
+                            </h3>
 
-                        @foreach ($products as $product)
-                            <option value="{{ $product->id }}">
-                                {{ $product->name }} — المخزون: {{ $product->stock }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                            <p class="text-sm text-muted">
+                                أضف منتجًا واحدًا أو أكثر إلى الطلب.
+                            </p>
+                        </div>
 
-                <div x-show="productId !== ''"
-                     x-cloak
-                     class="p-3 rounded border border-line bg-surface2 flex justify-between items-center">
+                        <button type="button"
+                                @click="addItem()"
+                                class="bg-neon hover:bg-neon-dim text-night px-3 py-2 rounded font-semibold flex items-center gap-2">
 
-                    <span class="text-muted">
-                        المخزون المتاح
-                    </span>
+                            <x-icon name="plus" class="w-4 h-4" />
 
-                    <span class="font-bold"
-                          :class="stock > 0 ? 'text-neon' : 'text-red-400'"
-                          x-text="stock">
-                    </span>
-                </div>
+                            إضافة منتج
+                        </button>
 
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-ink">
-                        المنتج / الوصف
-                    </label>
-
-                    <input type="text"
-                           name="item"
-                           value="{{ old('item') }}"
-                           required
-                           class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon"
-                           x-model="item">
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-
-                    <div>
-                        <label class="block mb-1 text-sm font-medium text-ink">
-                            الكمية
-                        </label>
-
-                        <input type="number"
-                               name="quantity"
-                               value="{{ old('quantity', 1) }}"
-                               min="1"
-                               :max="productId !== '' && stock > 0 ? stock : null"
-                               required
-                               class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon"
-                               x-model="qty">
-
-                        <p x-show="productId !== '' && stock > 0"
-                           class="mt-1 text-xs text-muted">
-                            الحد الأقصى المتاح:
-                            <span x-text="stock"></span>
-                        </p>
-
-                        <p x-show="productId !== '' && stock === 0"
-                           class="mt-1 text-xs text-red-400">
-                            هذا المنتج غير متوفر في المخزون.
-                        </p>
                     </div>
 
-                    <div>
-                        <label class="block mb-1 text-sm font-medium text-ink">
-                            سعر المنتج (للقطعة)
-                        </label>
+                    <div class="space-y-3">
 
-                        <input type="number"
-                               step="0.01"
-                               name="cost"
-                               x-model="cost"
-                               class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon">
-                    </div>
+                        <template x-for="(item, index) in items" :key="item.key">
 
-                    <div>
-                        <label class="block mb-1 text-sm font-medium text-ink">
-                            سعر البيع (للقطعة)
-                        </label>
+                            <div class="p-4 rounded border border-line bg-surface2">
 
-                        <input type="number"
-                               step="0.01"
-                               name="price"
-                               x-model="price"
-                               class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon">
+                                <div class="flex items-center justify-between mb-3">
+
+                                    <span class="text-sm font-semibold text-ink">
+                                        المنتج <span x-text="index + 1"></span>
+                                    </span>
+
+                                    <button type="button"
+                                            x-show="items.length > 1"
+                                            @click="removeItem(index)"
+                                            class="text-red-400 hover:text-red-300 text-sm">
+
+                                        حذف
+                                    </button>
+
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+
+                                    {{-- المنتج --}}
+                                    <div class="md:col-span-5">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            المنتج
+                                        </label>
+
+                                        <select :name="`items[${index}][product_id]`"
+                                                x-model="item.product_id"
+                                                @change="selectProduct(index)"
+                                                class="w-full bg-surface border-line text-ink rounded focus:border-neon focus:ring-neon">
+
+                                            <option value="">
+                                                -- اكتب يدويًا --
+                                            </option>
+
+                                            @foreach ($products as $product)
+
+                                                <option value="{{ $product->id }}">
+                                                    {{ $product->name }} — المخزون: {{ $product->stock }}
+                                                </option>
+
+                                            @endforeach
+
+                                        </select>
+
+                                    </div>
+
+                                    {{-- اسم المنتج --}}
+                                    <div class="md:col-span-4">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            المنتج / الوصف
+                                        </label>
+
+                                        <input type="text"
+                                               :name="`items[${index}][item]`"
+                                               x-model="item.item"
+                                               required
+                                               class="w-full bg-surface border-line text-ink rounded focus:border-neon focus:ring-neon"
+                                               placeholder="اسم المنتج">
+
+                                    </div>
+
+                                    {{-- الكمية --}}
+                                    <div class="md:col-span-3">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            الكمية
+                                        </label>
+
+                                        <input type="number"
+                                               :name="`items[${index}][quantity]`"
+                                               x-model.number="item.quantity"
+                                               min="1"
+                                               :max="item.product_id && item.stock > 0 ? item.stock : null"
+                                               required
+                                               class="w-full bg-surface border-line text-ink rounded focus:border-neon focus:ring-neon">
+
+                                        <p x-show="item.product_id && item.stock > 0"
+                                           class="mt-1 text-xs text-muted">
+
+                                            المتاح:
+                                            <span x-text="item.stock"></span>
+
+                                        </p>
+
+                                        <p x-show="item.product_id && item.stock === 0"
+                                           class="mt-1 text-xs text-red-400">
+
+                                            هذا المنتج غير متوفر.
+
+                                        </p>
+
+                                    </div>
+
+                                    {{-- التكلفة --}}
+                                    <div class="md:col-span-4">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            التكلفة للقطعة
+                                        </label>
+
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               :name="`items[${index}][cost]`"
+                                               x-model="item.cost"
+                                               class="w-full bg-surface border-line text-ink rounded focus:border-neon focus:ring-neon">
+
+                                    </div>
+
+                                    {{-- سعر البيع --}}
+                                    <div class="md:col-span-4">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            سعر البيع للقطعة
+                                        </label>
+
+                                        <input type="number"
+                                               step="0.01"
+                                               min="0"
+                                               :name="`items[${index}][price]`"
+                                               x-model="item.price"
+                                               class="w-full bg-surface border-line text-ink rounded focus:border-neon focus:ring-neon">
+
+                                    </div>
+
+                                    {{-- ربح المنتج --}}
+                                    <div class="md:col-span-4">
+
+                                        <label class="block mb-1 text-sm text-muted">
+                                            صافي الربح
+                                        </label>
+
+                                        <div class="w-full bg-surface border border-line rounded px-3 py-2 font-bold"
+                                             :class="itemProfit(item) >= 0 ? 'text-neon' : 'text-red-400'"
+                                             x-text="itemProfit(item).toFixed(2)">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </template>
+
                     </div>
 
                 </div>
 
-                <div class="p-3 rounded border border-line bg-surface2 flex justify-between items-center">
+                {{-- ملخص الطلب --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
 
-                    <span class="text-muted">
-                        صافي الربح
-                    </span>
+                    <div class="p-4 rounded border border-line bg-surface2">
+                        <div class="text-sm text-muted mb-1">
+                            إجمالي المبيعات
+                        </div>
 
-                    <span class="font-bold text-lg"
-                          :class="((Number(price || 0) - Number(cost || 0)) * Number(qty || 0)) >= 0
-                              ? 'text-neon'
-                              : 'text-red-400'"
-                          x-text="((Number(price || 0) - Number(cost || 0)) * Number(qty || 0)).toFixed(2)">
-                    </span>
+                        <div class="text-xl font-bold text-ink"
+                             x-text="totalRevenue().toFixed(2)">
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded border border-line bg-surface2">
+                        <div class="text-sm text-muted mb-1">
+                            إجمالي التكلفة
+                        </div>
+
+                        <div class="text-xl font-bold text-ink"
+                             x-text="totalCost().toFixed(2)">
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded border border-line bg-surface2">
+                        <div class="text-sm text-muted mb-1">
+                            صافي الربح
+                        </div>
+
+                        <div class="text-xl font-bold"
+                             :class="totalProfit() >= 0 ? 'text-neon' : 'text-red-400'"
+                             x-text="totalProfit().toFixed(2)">
+                        </div>
+                    </div>
 
                 </div>
 
+                {{-- الحالة --}}
                 <div>
                     <label class="block mb-1 text-sm font-medium text-ink">
                         الحالة
@@ -235,7 +320,7 @@
 
                         @foreach ($statuses as $status)
                             <option value="{{ $status }}"
-                                    @selected(old('status') === $status)>
+                                    @selected(old('status', 'جديد') === $status)>
                                 {{ $status }}
                             </option>
                         @endforeach
@@ -243,20 +328,25 @@
                     </select>
                 </div>
 
+                {{-- الملاحظات --}}
                 <div>
+
                     <label class="block mb-1 text-sm font-medium text-ink">
                         ملاحظات
                     </label>
 
                     <textarea name="notes"
+                              rows="3"
                               class="w-full bg-surface2 border-line text-ink rounded focus:border-neon focus:ring-neon">{{ old('notes') }}</textarea>
+
                 </div>
 
+                {{-- الأزرار --}}
                 <div class="flex gap-2">
 
                     <button type="submit"
-                            :disabled="submitting || (productId !== '' && stock === 0)"
-                            :class="submitting || (productId !== '' && stock === 0)
+                            :disabled="submitting || hasStockError()"
+                            :class="submitting || hasStockError()
                                 ? 'opacity-50 cursor-not-allowed'
                                 : ''"
                             class="bg-neon hover:bg-neon-dim text-night px-4 py-2 rounded font-semibold flex items-center gap-2">
@@ -269,7 +359,9 @@
 
                     <a href="{{ route('orders.index') }}"
                        class="px-4 py-2 rounded border border-line text-muted hover:text-ink">
+
                         إلغاء
+
                     </a>
 
                 </div>
@@ -277,4 +369,115 @@
             </form>
         </div>
     </div>
+
+    <script>
+        function orderForm() {
+            return {
+                submitting: false,
+
+                products: @json($products),
+
+                items: [
+                    {
+                        key: Date.now(),
+                        product_id: '',
+                        item: '',
+                        quantity: 1,
+                        price: '',
+                        cost: '',
+                        stock: 0,
+                    }
+                ],
+
+                addItem() {
+                    this.items.push({
+                        key: Date.now() + Math.random(),
+                        product_id: '',
+                        item: '',
+                        quantity: 1,
+                        price: '',
+                        cost: '',
+                        stock: 0,
+                    });
+                },
+
+                removeItem(index) {
+                    if (this.items.length === 1) {
+                        return;
+                    }
+
+                    this.items.splice(index, 1);
+                },
+
+                selectProduct(index) {
+                    const currentItem = this.items[index];
+
+                    const product = this.products.find(
+                        product => product.id == currentItem.product_id
+                    );
+
+                    if (!product) {
+                        currentItem.item = '';
+                        currentItem.price = '';
+                        currentItem.cost = '';
+                        currentItem.stock = 0;
+                        currentItem.quantity = 1;
+
+                        return;
+                    }
+
+                    currentItem.item = product.name;
+                    currentItem.price = product.price ?? '';
+                    currentItem.cost = product.cost ?? '';
+                    currentItem.stock = Number(product.stock ?? 0);
+
+                    if (
+                        currentItem.stock > 0 &&
+                        Number(currentItem.quantity) > currentItem.stock
+                    ) {
+                        currentItem.quantity = currentItem.stock;
+                    }
+
+                    if (currentItem.stock === 0) {
+                        currentItem.quantity = 1;
+                    }
+                },
+
+                itemProfit(item) {
+                    const price = Number(item.price || 0);
+                    const cost = Number(item.cost || 0);
+                    const quantity = Number(item.quantity || 0);
+
+                    return (price - cost) * quantity;
+                },
+
+                totalRevenue() {
+                    return this.items.reduce((total, item) => {
+                        return total +
+                            (Number(item.price || 0) *
+                             Number(item.quantity || 0));
+                    }, 0);
+                },
+
+                totalCost() {
+                    return this.items.reduce((total, item) => {
+                        return total +
+                            (Number(item.cost || 0) *
+                             Number(item.quantity || 0));
+                    }, 0);
+                },
+
+                totalProfit() {
+                    return this.totalRevenue() - this.totalCost();
+                },
+
+                hasStockError() {
+                    return this.items.some(item => {
+                        return item.product_id &&
+                               Number(item.stock) === 0;
+                    });
+                }
+            }
+        }
+    </script>
 </x-app-layout>

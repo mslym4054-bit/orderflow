@@ -93,7 +93,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+// Order Status Chart - Reports
 
+const reportStatusCanvas = document.getElementById('orderStatusReportChart');
+
+if (reportStatusCanvas) {
+
+    const reportStatusData = JSON.parse(
+        reportStatusCanvas.dataset.chart
+    );
+
+    new Chart(reportStatusCanvas, {
+
+        type: 'doughnut',
+
+        data: {
+
+            labels: reportStatusData.labels,
+
+            datasets: [
+                {
+                    data: reportStatusData.values,
+                }
+            ]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    position: 'bottom',
+                }
+
+            }
+
+        }
+
+    });
+
+}
     // Reports Sales & Profit Chart
     const reportCanvas = document.getElementById('salesChart');
 
