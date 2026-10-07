@@ -16,11 +16,12 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'cost' => ['nullable', 'numeric', 'min:0'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-        ]);
+       $data = $request->validate([
+    'name' => ['required', 'string', 'max:255'],
+    'cost' => ['nullable', 'numeric', 'min:0'],
+    'price' => ['nullable', 'numeric', 'min:0'],
+    'stock' => ['required', 'integer', 'min:0'],
+]);
 
         $request->user()->products()->create($data);
 
@@ -31,11 +32,12 @@ class ProductController extends Controller
     {
         abort_unless($product->user_id === $request->user()->id, 403);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'cost' => ['nullable', 'numeric', 'min:0'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-        ]);
+       $data = $request->validate([
+    'name' => ['required', 'string', 'max:255'],
+    'cost' => ['nullable', 'numeric', 'min:0'],
+    'price' => ['nullable', 'numeric', 'min:0'],
+    'stock' => ['required', 'integer', 'min:0'],
+]);
 
         $product->update($data);
 

@@ -71,7 +71,13 @@
                                     'ملغي' => 'bg-red-400/10 text-red-300',
                                     default => 'bg-white/5 text-muted',
                                 };
-                                $profit = ($order->price - $order->cost) * $order->quantity;
+                               $item = $order->items->first();
+
+$quantity = $item?->quantity ?? $order->quantity;
+$cost = $item?->cost ?? $order->cost;
+$price = $item?->price ?? $order->price;
+
+$profit = ($price - $cost) * $quantity;
                             @endphp
                             <tr class="border-t border-line">
                                 <td class="p-3 text-ink">
@@ -83,12 +89,12 @@
                                         </a>
                                     @endif
                                 </td>
-                                <td class="p-3 text-ink">{{ $order->item }}</td>
-                                <td class="p-3 text-ink">{{ $order->quantity }}</td>
-                                <td class="p-3 text-ink">{{ $order->cost !== null ? number_format($order->cost, 2) : '-' }}</td>
-                                <td class="p-3 text-ink">{{ $order->price !== null ? number_format($order->price, 2) : '-' }}</td>
+                                <td class="p-3 text-ink">{{ $order->items->first()?->item ?? $order->item }}</td>
+                                <td class="p-3 text-ink">{{ $quantity }}</td>
+                                <td class="p-3 text-ink">{{ $cost !== null ? number_format($cost, 2) : '-' }}</td>
+                                <td class="p-3 text-ink">{{ $price !== null ? number_format($price, 2) : '-' }}</td>
                                 <td class="p-3 {{ $profit >= 0 ? 'text-neon' : 'text-red-400' }}">
-                                    {{ $order->price !== null ? number_format($profit, 2) : '-' }}
+                                    {{ $price !== null ? number_format($profit, 2) : '-' }}
                                 </td>
                                 <td class="p-3">
                                     <span class="px-2 py-1 rounded text-xs font-medium {{ $badge }}">{{ $order->status }}</span>

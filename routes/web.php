@@ -5,11 +5,12 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
  use App\Http\Controllers\ProductController;
+ use App\Http\Controllers\DashboardController;
 
 Route::get('/', fn () => view('landing'))->name('landing');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [OrderController::class, 'index'])->name('dashboard');
+  Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('orders', OrderController::class)
         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
