@@ -8,7 +8,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use App\Services\BrevoMailer;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -48,14 +48,13 @@ class AuthenticatedSessionController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::raw(
-            "رمز التحقق الخاص بك في OrderFlow هو: {$code}\n\nالرمز صالح لمدة 10 دقائق.",
-            function ($message) use ($user) {
-                $message
-                    ->to($user->email)
-                    ->subject('رمز التحقق من البريد الإلكتروني - OrderFlow');
-            }
-        );
+      $sent = app(BrevoMailer::class)->sendVerificationCode($user, $code);
+
+        if (!$sent) {
+            return redirect()
+                ->route('email.verification')
+                ->with('status', 'تعذر إرسال رمز التحقق. يرجى المحاولة مرة أخرى.');
+        }
 
         return redirect()->route('email.verification');
     }
