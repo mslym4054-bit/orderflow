@@ -3,14 +3,24 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
- use App\Http\Controllers\ProductController;
- use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', fn () => view('landing'))->name('landing');
 
-Route::middleware('auth')->group(function () {
-  Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'email.verified'])->group(function () {
+    Route::get('/settings', [SettingsController::class, 'edit'])
+    ->name('settings.edit');
+
+    Route::patch('/settings', [SettingsController::class, 'update'])
+    ->name('settings.update');
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+Route::patch('/settings/theme', [SettingsController::class, 'updateTheme'])
+    ->name('settings.theme');
 
     Route::resource('orders', OrderController::class)
         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -18,12 +28,23 @@ Route::middleware('auth')->group(function () {
     Route::resource('customers', CustomerController::class)
         ->only(['index', 'store', 'update', 'destroy']);
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::get('/reports', [OrderController::class, 'report'])->name('reports');
-Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+    Route::resource('products', ProductController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+
+    Route::get('/reports', [OrderController::class, 'report'])
+        ->name('reports');
+
+    Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])
+        ->name('orders.invoice');
 });
 
 require __DIR__.'/auth.php';

@@ -9,8 +9,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\EmailVerificationCode;
 
-#[Fillable(['name', 'email', 'password', 'trial_ends_at'])]
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'trial_ends_at',
+    'email_verified_at',
+    'locale',
+    'theme',
+    'brand_color',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -54,4 +64,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+    /**
+ * User email verification codes.
+ */
+public function verificationCodes(): HasMany
+{
+    return $this->hasMany(EmailVerificationCode::class);
+}
 }

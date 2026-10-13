@@ -60,38 +60,90 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Top-selling products chart - Reports
+    const topProductsCanvas = document.getElementById('topProductsChart');
 
-    // Order Status Chart - Dashboard
-    const statusCanvas = document.getElementById('orderStatusChart');
+    if (topProductsCanvas) {
+        const productsData = JSON.parse(topProductsCanvas.dataset.chart);
 
-    if (statusCanvas) {
-        const statusData = JSON.parse(statusCanvas.dataset.chart);
-
-        new Chart(statusCanvas, {
-            type: 'doughnut',
-
+        new Chart(topProductsCanvas, {
+            type: 'bar',
             data: {
-                labels: statusData.labels,
-
-                datasets: [
-                    {
-                        data: statusData.values,
-                    }
-                ]
+                labels: productsData.labels,
+                datasets: [{
+                    label: 'الكمية المباعة',
+                    data: productsData.values,
+                    backgroundColor: 'rgba(57, 255, 194, 0.65)',
+                    borderColor: '#39FFC2',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
             },
-
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                    }
-                }
-            }
+                        display: false,
+                    },
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#262E35',
+                        },
+                        ticks: {
+                            precision: 0,
+                            callback: function (value) {
+                                return Number(value).toLocaleString('en-US');
+                            },
+                        },
+                    },
+                    y: {
+                        grid: {
+                            display: false,
+                        },
+                    },
+                },
+            },
         });
     }
+
+
+    // Order Status Chart - Dashboard
+
+const statusCanvas = document.getElementById('orderStatusChart');
+
+if (statusCanvas) {
+    const statusData = JSON.parse(statusCanvas.dataset.chart);
+
+    new Chart(statusCanvas, {
+        type: 'doughnut',
+
+        data: {
+            labels: statusData.labels,
+            datasets: [
+                {
+                    data: statusData.values,
+                }
+            ]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+}
+
 
 // Order Status Chart - Reports
 

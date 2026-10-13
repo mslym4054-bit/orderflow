@@ -9,12 +9,12 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Auth\LoginCodeController;
 use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\EmailVerificationController;
 
 Route::middleware('guest')->group(function () {
+
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
@@ -36,18 +36,22 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
-
-
-Route::get('login/code', [LoginCodeController::class, 'create'])->name('login.code');
-Route::post('login/code', [LoginCodeController::class, 'send'])->name('login.code.send');
-Route::get('login/code/verify', [LoginCodeController::class, 'verify'])->name('login.code.verify');
-Route::post('login/code/verify', [LoginCodeController::class, 'attempt'])->name('login.code.attempt');
 });
 
-
 Route::get('/about', fn () => view('about'))->name('about');
-Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+
+Route::post('/feedback', [FeedbackController::class, 'store'])
+    ->name('feedback.store');
+
 Route::middleware('auth')->group(function () {
+        Route::get('email-verification', [EmailVerificationController::class, 'show'])
+        ->name('email.verification');
+
+    Route::post('email-verification/send', [EmailVerificationController::class, 'sendCode'])
+        ->name('email.verification.resend');
+
+    Route::post('email-verification/verify', [EmailVerificationController::class, 'verify'])
+        ->name('email.verification.verify');
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
@@ -64,9 +68,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
-    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+    Route::put('password', [PasswordController::class, 'update'])
+        ->name('password.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-
 });

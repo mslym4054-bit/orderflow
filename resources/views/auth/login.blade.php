@@ -25,7 +25,7 @@
             @if (Route::has('password.request'))
                 <a class="text-sm text-muted hover:text-ink" href="{{ route('password.request') }}">نسيت كلمة المرور؟</a>
             @endif
-            <a href="{{ route('login.code') }}" class="text-sm text-neon hover:text-neon-dim">الدخول بكود عبر الإيميل</a>
+
             <x-primary-button>دخول</x-primary-button>
         </div>
 
